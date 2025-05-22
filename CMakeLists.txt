@@ -15,13 +15,24 @@ include(cppjieba)
 set(ONNXRUNTIME_DIR ${onnxruntime_SOURCE_DIR})
 message(STATUS "ONNXRUNTIME_DIR: ${ONNXRUNTIME_DIR}")
 message(STATUS "ONNXRUNTIME_INCLUDE_DIRS: ${ONNXRUNTIME_INCLUDE_DIRS}")
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/text_normalization
+    ${CMAKE_SOURCE_DIR}/thirdParty/cppinyin/csrc
+    )
+
+
+file(GLOB text_normalization_src  ${CMAKE_SOURCE_DIR}/text_normalization/*cpp)
+file(GLOB cppinyin_src ${CMAKE_SOURCE_DIR}/thirdParty/cppinyin_src/*cpp)
 
 # 可执行文件
 add_executable(infer
     main.cc
     kokoro.cpp
     wave-writer.cc
+    tn.cpp
+    ${text_normalization_src}
+    ${cppinyin_src}
 )
 
 # 链接库

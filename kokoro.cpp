@@ -7,7 +7,6 @@
 #include "kokoro.h"
 #include "onnxruntime_cxx_api.h"
 #include "util.h"
-#include "wave-writer.h"
 #include "algorithm"
 
 /*--------------------util------------------*/
@@ -223,7 +222,8 @@ std::vector<std::string> Tts::split_ch_eng(const std::string &text) {
 
 void Tts::infer(std::vector<int64_t>& tokenids, 
                 std::vector<float>& style,
-                float speed) {
+                float speed,
+                std::vector<float>& out_audio) {
 
   /*
   auto tmp = load_vec("/home/nanxun/Documents/sherpa-onnx/scripts/kokoro/v1.1-zh/tokenids.txt");
@@ -271,17 +271,18 @@ void Tts::infer(std::vector<int64_t>& tokenids,
 
   float *logits_data = output_tensors.front().GetTensorMutableData<float>();
   size_t element_count = info.GetElementCount();
-  sherpa_onnx::WriteWave(std::string("out.wav"), _sample_rate, logits_data, element_count);
+  out_audio.insert(out_audio.end(), logits_data, logits_data + element_count);
+  //sherpa_onnx::WriteWave(std::string("out.wav"), _sample_rate, logits_data, element_count);
 }
 
-void Tts::run(const std::string &text, const std::string &voice) {
+void Tts::run(const std::string &text, const std::string &voice, std::vector<float>& out_audio) {
     std::vector<std::string> parts = split_ch_eng(text);
 
     std::vector<std::string> tokens;
     for (const auto& sent: parts) {
         unsigned char byte = (unsigned)sent[0]; 
         if (_punc_set.count(sent[0])) {
-            std::cout << "add token:" <<sent<<std::endl;
+            //std::cout << "add token:" <<sent<<std::endl;
             for (auto s :sent)  {
                 std::string tmp(1, s);
                 tokens.push_back(tmp);
@@ -289,7 +290,7 @@ void Tts::run(const std::string &text, const std::string &voice) {
             }
         } else if (byte < 0xC0) {  // eng
             if (_word2token.count(sent)) {
-                std::cout << "add token:" <<sent<<std::endl;
+                //std::cout << "add token:" <<sent<<std::endl;
                 tokens.insert(tokens.end(), _word2token[sent].begin(), _word2token[sent].end());
             } else {
                 std::cout << "skip eng:" <<  sent << std::endl;
@@ -299,12 +300,12 @@ void Tts::run(const std::string &text, const std::string &voice) {
             _jieba->Cut(sent, out);
             for (auto& o: out) {
                 if (_word2token.count(o)) {
-                    std::cout << "add token:" <<o<<std::endl;
+                    //std::cout << "add token:" <<o<<std::endl;
                     tokens.insert(tokens.end(), _word2token[o].begin(), _word2token[o].end());
                 } else {
                     // split into single hanzi
                     for (auto hanzi : utf8_to_charset(o))  {
-                        std::cout << "add token:" <<hanzi<<std::endl;
+                        //std::cout << "add token:" <<hanzi<<std::endl;
                         if (_word2token.count(hanzi)) {
                             tokens.insert(tokens.end(), _word2token[hanzi].begin(), _word2token[hanzi].end());
                         }  else {
@@ -320,18 +321,18 @@ void Tts::run(const std::string &text, const std::string &voice) {
     token_ids.push_back(0);
     for (auto& str : tokens) {
         token_ids.push_back(_token2id[str]);
-        std::cout << "token_ids:" << str << " " << _token2id[str] << std::endl;
+        //std::cout << "token_ids:" << str << " " << _token2id[str] << std::endl;
     }
     if (token_ids.size() > _max_len) {
         token_ids.resize(_max_len);
     }
-    token_ids.push_back(0);
+    //token_ids.push_back(0);
 
     std::vector<float> style;
     int64_t emb_dim = _style_dims[2]; 
     style.assign(_voices[voice].begin() + emb_dim * token_ids.size(), _voices[voice].begin() + emb_dim *token_ids.size() + emb_dim);
 
-    infer(token_ids , style, 1.0);
+    infer(token_ids , style, 0.85, out_audio);
 }
 
 void Tts::setupIO() {

@@ -43,8 +43,8 @@ public:
   std::map<std::string, std::vector<float>> _voices; // voice -> 510 x 1 x 256
   std::vector<int64_t> _style_dims;                  // 510 1 256
 
-  void run(const std::string &text, const std::string &voice);
-  void infer(std::vector<int64_t>& tokenids, std::vector<float>& style, float speed) ;
+  void run(const std::string &text, const std::string &voice, std::vector<float>& out_data);
+  void infer(std::vector<int64_t>& tokenids, std::vector<float>& style, float speed, std::vector<float>& out_data);
   std::vector<std::string> split_ch_eng(const std::string &text);
 
 private:
