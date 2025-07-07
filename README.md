@@ -12,7 +12,7 @@
 <h4 align="center">If you are interested in This project, please kindly give Me a triple `Star`, `Fork` and `Watch`, Thanks!</h4>
 </div>
 
-A c++ project base on kokoro tts, mainly inspired by [sherpa_onnx](https://github.com/k2-fsa/sherpa-onnx/tree/master/scripts/kokoro/v1.1-zh), respect !
+A low cost tts project, it is quite easy to use.
 # usage
 After code cloned, run following command to compile the code and run a unit test,
 ```
